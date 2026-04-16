@@ -65,3 +65,36 @@ export class UpdateBatchDto {
   @IsBoolean()
   isActive?: boolean;
 }
+
+class BatchLocationDto {
+  @ApiProperty()
+  locationId: string;
+
+  @ApiProperty()
+  locationName: string;
+
+  @ApiProperty()
+  quantity: number;
+}
+
+class BatchBreakdownDto {
+  @ApiProperty()
+  batchId: string;
+
+  @ApiProperty()
+  batchNumber: string;
+
+  @ApiProperty({ description: 'ISO date string' })
+  expirationDate: Date;
+
+  @ApiProperty()
+  cost: number;
+
+  @ApiProperty({ description: 'Total quantity across all locations' })
+  totalQuantity: number;
+
+  @ApiProperty({ type: [BatchLocationDto] })
+  locations: BatchLocationDto[];
+}
+
+export { BatchBreakdownDto, BatchLocationDto };

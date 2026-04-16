@@ -8,7 +8,7 @@ import {
   Param,
   Query,
 } from '@nestjs/common';
-import { ApiTags, ApiBearerAuth } from '@nestjs/swagger';
+import { ApiTags, ApiBearerAuth, ApiOperation } from '@nestjs/swagger';
 import { BatchesService } from './batches.service.js';
 import { CreateBatchDto, UpdateBatchDto } from './dto/index.js';
 import { OrganizationId } from '../../common/decorators/organization-id.decorator.js';
@@ -37,6 +37,10 @@ export class BatchesController {
   }
 
   @Get('breakdown/:productId')
+  @ApiOperation({
+    summary:
+      'Get batch breakdown for a product (grouped by batch with locations)',
+  })
   getBatchBreakdown(
     @Param('productId') productId: string,
     @OrganizationId() organizationId: string,

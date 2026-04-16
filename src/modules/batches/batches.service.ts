@@ -4,7 +4,11 @@ import {
   ConflictException,
 } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service.js';
-import { CreateBatchDto, UpdateBatchDto } from './dto/index.js';
+import {
+  CreateBatchDto,
+  UpdateBatchDto,
+  BatchBreakdownDto,
+} from './dto/index.js';
 
 @Injectable()
 export class BatchesService {
@@ -179,8 +183,11 @@ export class BatchesService {
     });
   }
 
-  async getBatchBreakdown(productId: string, organizationId: string) {
-    return this.prisma.batchInventory.findMany({
+  async getBatchBreakdown(
+    productId: string,
+    organizationId: string,
+  ): Promise<BatchBreakdownDto[]> {
+    const inventories = await this.prisma.batchInventory.findMany({
       where: {
         productId,
         batch: { isActive: true, organizationId },
@@ -190,9 +197,42 @@ export class BatchesService {
         batch: {
           select: { batchNumber: true, expirationDate: true, cost: true },
         },
-        location: { select: { name: true } },
+        location: { select: { id: true, name: true } },
       },
       orderBy: { batch: { expirationDate: 'asc' } },
     });
+
+    const batchMap = new Map<string, BatchBreakdownDto>();
+
+    for (const inv of inventories) {
+      const batchId = inv.batchId;
+      const existing = batchMap.get(batchId);
+
+      if (existing) {
+        existing.totalQuantity += inv.quantity;
+        existing.locations.push({
+          locationId: inv.location.id,
+          locationName: inv.location.name,
+          quantity: inv.quantity,
+        });
+      } else {
+        batchMap.set(batchId, {
+          batchId,
+          batchNumber: inv.batch.batchNumber,
+          expirationDate: inv.batch.expirationDate,
+          cost: Number(inv.batch.cost),
+          totalQuantity: inv.quantity,
+          locations: [
+            {
+              locationId: inv.location.id,
+              locationName: inv.location.name,
+              quantity: inv.quantity,
+            },
+          ],
+        });
+      }
+    }
+
+    return Array.from(batchMap.values());
   }
 }

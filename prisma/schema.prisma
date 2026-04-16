@@ -87,9 +87,9 @@ model UnitOfMeasure {
   derivedUnits     UnitOfMeasure[] @relation("UomHierarchy")
   conversionFactor Decimal? @db.Decimal(10, 4)
   isActive         Boolean  @default(true)
-  organizationId   String
+  organizationId   String?
   createdAt        DateTime @default(now())
-  updatedAt        DateTime @updatedAt
+  updatedAt        DateTime? @updatedAt
 
   productBaseUnits       Product[] @relation("ProductBaseUnit")
   productStockingUnits   Product[] @relation("ProductStockingUnit")
@@ -98,8 +98,7 @@ model UnitOfMeasure {
   formulaYieldUnits      Formula[] @relation("FormulaYieldUom")
   formulaIngredientUoms  FormulaIngredient[] @relation("FormulaIngredientUom")
 
-  @@unique([organizationId, code])
-  @@index([organizationId])
+  @@index([organizationId, code])
   @@index([isActive])
 }
 
@@ -111,16 +110,15 @@ model Manufacturer {
   contactPhone   String?
   address        String?
   isActive       Boolean  @default(true)
-  organizationId String
+  organizationId String?
   createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
+  updatedAt      DateTime? @updatedAt
 
   products Product[]
   batches  Batch[]
 
-  @@unique([organizationId, code])
-  @@unique([organizationId, name])
-  @@index([organizationId])
+  @@index([organizationId, code])
+  @@index([organizationId, name])
   @@index([isActive])
 }
 
@@ -132,12 +130,11 @@ model ProductCategory {
   parentId       String?
   children       ProductCategory[] @relation("CategoryHierarchy")
   products       Product[]
-  organizationId String
+  organizationId String?
   createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
+  updatedAt      DateTime? @updatedAt
 
-  @@unique([organizationId, name])
-  @@index([organizationId])
+  @@index([organizationId, name])
   @@index([parentId])
 }
 
@@ -166,9 +163,9 @@ model Product {
   purchaseUnit    UnitOfMeasure?    @relation("ProductPurchaseUnit", fields: [purchaseUnitId], references: [id])
   purchaseUnitId  String?
   isActive        Boolean           @default(true)
-  organizationId  String
+  organizationId  String?
   createdAt       DateTime          @default(now())
-  updatedAt       DateTime          @updatedAt
+  updatedAt       DateTime?          @updatedAt
 
   batches               Batch[]
   batchInventory        BatchInventory[]
@@ -182,8 +179,7 @@ model Product {
   compoundingMaterials  CompoundingBatchMaterial[]
   formulas              Formula[] @relation("FormulaProduct")
 
-  @@unique([organizationId, code])
-  @@index([organizationId])
+  @@index([organizationId, code])
   @@index([productType])
   @@index([categoryId])
   @@index([manufacturerId])
@@ -201,16 +197,15 @@ model Supplier {
   contactPhone   String?
   address        String?
   isActive       Boolean  @default(true)
-  organizationId String
+  organizationId String?
   createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
+  updatedAt      DateTime? @updatedAt
 
   purchaseOrders   PurchaseOrder[]
   inboundShipments InboundShipment[]
   batches          Batch[]
 
-  @@unique([organizationId, code])
-  @@index([organizationId])
+  @@index([organizationId, code])
   @@index([isActive])
 }
 
@@ -223,9 +218,9 @@ model WarehouseLocation {
   bin            String?
   locationType   LocationType
   isActive       Boolean      @default(true)
-  organizationId String
+  organizationId String?
   createdAt      DateTime     @default(now())
-  updatedAt      DateTime     @updatedAt
+  updatedAt      DateTime?     @updatedAt
 
   batchInventory      BatchInventory[]
   inboundShipmentItems InboundShipmentItem[]
@@ -237,8 +232,7 @@ model WarehouseLocation {
   outboundShipmentItems      OutboundShipmentItem[]
   compoundingBatchMaterials  CompoundingBatchMaterial[]
 
-  @@unique([organizationId, code])
-  @@index([organizationId])
+  @@index([organizationId, code])
   @@index([isActive])
   @@index([locationType])
 }
@@ -263,7 +257,7 @@ model Batch {
   compoundingBatchId String? @unique
   organizationId   String
   createdAt        DateTime @default(now())
-  updatedAt        DateTime @updatedAt
+  updatedAt        DateTime? @updatedAt
 
   inboundShipmentItems  InboundShipmentItem[]
   outboundShipmentItems OutboundShipmentItem[]
@@ -295,7 +289,7 @@ model BatchInventory {
   locationId     String
   organizationId String
   createdAt      DateTime          @default(now())
-  updatedAt      DateTime          @updatedAt
+  updatedAt      DateTime?          @updatedAt
 
   @@unique([batchId, locationId])
   @@index([organizationId])
@@ -319,7 +313,7 @@ model PurchaseOrder {
   supplierId     String
   organizationId String
   createdAt      DateTime            @default(now())
-  updatedAt      DateTime            @updatedAt
+  updatedAt      DateTime?            @updatedAt
 
   items            PurchaseOrderItem[]
   inboundShipments InboundShipment[]
@@ -341,7 +335,7 @@ model PurchaseOrderItem {
   purchaseOrder   PurchaseOrder @relation(fields: [purchaseOrderId], references: [id])
   purchaseOrderId String
   createdAt       DateTime     @default(now())
-  updatedAt       DateTime     @updatedAt
+  updatedAt       DateTime?     @updatedAt
 
   @@unique([purchaseOrderId, productId])
   @@index([purchaseOrderId])
@@ -361,7 +355,7 @@ model InboundShipment {
   purchaseOrderId  String?
   organizationId   String
   createdAt        DateTime              @default(now())
-  updatedAt        DateTime              @updatedAt
+  updatedAt        DateTime?              @updatedAt
 
   items InboundShipmentItem[]
 
@@ -385,7 +379,7 @@ model InboundShipmentItem {
   inboundShipment   InboundShipment   @relation(fields: [inboundShipmentId], references: [id])
   inboundShipmentId String
   createdAt         DateTime          @default(now())
-  updatedAt         DateTime          @updatedAt
+  updatedAt         DateTime?          @updatedAt
 
   @@index([inboundShipmentId])
   @@index([batchId])
@@ -407,7 +401,7 @@ model OutboundShipment {
   notes              String?
   organizationId     String
   createdAt          DateTime                @default(now())
-  updatedAt          DateTime                @updatedAt
+  updatedAt          DateTime?                @updatedAt
 
   items OutboundShipmentItem[]
 
@@ -429,7 +423,7 @@ model OutboundShipmentItem {
   outboundShipment   OutboundShipment  @relation(fields: [outboundShipmentId], references: [id])
   outboundShipmentId String
   createdAt          DateTime          @default(now())
-  updatedAt          DateTime          @updatedAt
+  updatedAt          DateTime?          @updatedAt
 
   @@index([outboundShipmentId])
   @@index([batchId])
@@ -482,7 +476,7 @@ model Transfer {
   toLocationId    String
   organizationId  String
   createdAt       DateTime          @default(now())
-  updatedAt       DateTime          @updatedAt
+  updatedAt       DateTime?          @updatedAt
 
   @@unique([organizationId, transferNumber])
   @@index([organizationId])
@@ -508,7 +502,7 @@ model StockAdjustment {
   batchId          String?
   organizationId   String
   createdAt        DateTime          @default(now())
-  updatedAt        DateTime          @updatedAt
+  updatedAt        DateTime?          @updatedAt
 
   @@unique([organizationId, adjustmentNumber])
   @@index([organizationId])
@@ -533,15 +527,14 @@ model Formula {
   product        Product  @relation("FormulaProduct", fields: [productId], references: [id])
   productId      String
   isActive       Boolean  @default(true)
-  organizationId String
+  organizationId String?
   createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
+  updatedAt      DateTime? @updatedAt
 
   ingredients       FormulaIngredient[]
   compoundingBatches CompoundingBatch[]
 
-  @@unique([organizationId, code])
-  @@index([organizationId])
+  @@index([organizationId, code])
   @@index([productId])
   @@index([isActive])
 }
@@ -557,7 +550,7 @@ model FormulaIngredient {
   formulaId      String
   notes          String?
   createdAt      DateTime      @default(now())
-  updatedAt      DateTime      @updatedAt
+  updatedAt      DateTime?      @updatedAt
 
   @@unique([formulaId, productId])
   @@index([formulaId])
@@ -579,7 +572,7 @@ model CompoundingBatch {
   producedBatch    Batch?            @relation("CompoundingProducedBatch")
   organizationId   String
   createdAt        DateTime          @default(now())
-  updatedAt        DateTime          @updatedAt
+  updatedAt        DateTime?          @updatedAt
 
   materials CompoundingBatchMaterial[]
 
