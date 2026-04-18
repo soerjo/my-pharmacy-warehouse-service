@@ -7,8 +7,11 @@ import {
   IsString,
   IsBoolean,
   IsUUID,
+  IsArray,
 } from 'class-validator';
+import { Transform } from 'class-transformer';
 import { ProductType } from '@prisma/client';
+import { PaginationQueryDto } from '../../../common/dto/index.js';
 
 export class CreateProductDto {
   @ApiProperty({ example: 'PRD-001' })
@@ -166,4 +169,40 @@ export class UpdateProductDto {
   @IsBoolean()
   @IsOptional()
   isActive?: boolean;
+}
+
+export class ProductQueryDto extends PaginationQueryDto {
+  @ApiPropertyOptional({ type: Boolean })
+  @Transform(({ value }) => {
+    if (value === 'true') return true;
+    if (value === 'false') return false;
+    return undefined;
+  })
+  @IsBoolean()
+  @IsOptional()
+  isActive?: boolean;
+
+  @ApiPropertyOptional({ enum: ProductType })
+  @IsEnum(ProductType)
+  @IsOptional()
+  productType?: ProductType;
+
+  @ApiPropertyOptional()
+  @IsString()
+  @IsOptional()
+  search?: string;
+
+  @ApiPropertyOptional()
+  @IsUUID()
+  @IsOptional()
+  categoryId?: string;
+
+  @ApiPropertyOptional({ type: [String], description: 'Comma-separated list of product IDs' })
+  @Transform(({ value }) =>
+    value ? value.split(',').map((id: string) => id.trim()) : undefined,
+  )
+  @IsArray()
+  @IsUUID('4', { each: true })
+  @IsOptional()
+  ids?: string[];
 }

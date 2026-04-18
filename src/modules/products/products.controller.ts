@@ -10,7 +10,11 @@ import {
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { ProductsService } from './products.service.js';
-import { CreateProductDto, UpdateProductDto } from './dto/index.js';
+import {
+  CreateProductDto,
+  UpdateProductDto,
+  ProductQueryDto,
+} from './dto/index.js';
 import { OrganizationId } from '../../common/decorators/organization-id.decorator.js';
 
 @ApiBearerAuth()
@@ -32,18 +36,9 @@ export class ProductsController {
   @ApiOperation({ summary: 'List all products' })
   findAll(
     @OrganizationId() organizationId: string,
-    @Query('isActive') isActive?: string,
-    @Query('productType') productType?: string,
-    @Query('search') search?: string,
-    @Query('categoryId') categoryId?: string,
+    @Query() query: ProductQueryDto,
   ) {
-    return this.productsService.findAll(
-      organizationId,
-      isActive === 'true' ? true : isActive === 'false' ? false : undefined,
-      productType,
-      search,
-      categoryId,
-    );
+    return this.productsService.findAll(organizationId, query);
   }
 
   @Get('stock')

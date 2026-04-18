@@ -6,7 +6,11 @@ import {
 } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { PrismaService } from '../../prisma/prisma.service.js';
-import { CreateProductDto, UpdateProductDto } from './dto/index.js';
+import {
+  CreateProductDto,
+  UpdateProductDto,
+  ProductQueryDto,
+} from './dto/index.js';
 
 @Injectable()
 export class ProductsService {
@@ -56,20 +60,23 @@ export class ProductsService {
     });
   }
 
-  async findAll(
-    organizationId: string,
-    isActive?: boolean,
-    productType?: string,
-    search?: string,
-    categoryId?: string,
-  ) {
+  async findAll(organizationId: string, query: ProductQueryDto) {
+    const {
+      page = 1,
+      limit = 20,
+      isActive,
+      productType,
+      search,
+      categoryId,
+      ids,
+    } = query;
+
     const where: Prisma.ProductWhereInput = {
-      organizationId,
+      OR: [{ organizationId }, { organizationId: null }],
       ...(isActive !== undefined && { isActive }),
-      ...(productType && {
-        productType: productType as Prisma.EnumProductTypeFilter['equals'],
-      }),
+      ...(productType && { productType }),
       ...(categoryId && { categoryId }),
+      ...(ids && ids.length > 0 && { id: { in: ids } }),
       ...(search && {
         OR: [
           { name: { contains: search, mode: Prisma.QueryMode.insensitive } },
@@ -78,15 +85,47 @@ export class ProductsService {
       }),
     };
 
-    return this.prisma.product.findMany({
-      where,
-      include: {
-        category: true,
-        manufacturer: true,
-        baseUnit: true,
+    const [data, total] = await Promise.all([
+      this.prisma.product.findMany({
+        where,
+        include: {
+          category: true,
+          manufacturer: true,
+          baseUnit: true,
+        },
+        orderBy: { name: 'asc' },
+        skip: (page - 1) * limit,
+        take: limit,
+      }),
+      this.prisma.product.count({ where }),
+    ]);
+
+    const mapped = data.map((p) => ({
+      id: p.id,
+      name: p.name,
+      description: p.description,
+      dosageForm: p.dosageForm,
+      strength: p.strength,
+      productType: p.productType,
+      manufacturerId: p.manufacturerId,
+      manufacturerName: p.manufacturer?.name ?? null,
+      categoryId: p.categoryId,
+      categoryName: p.category?.name ?? null,
+      baseUnitId: p.baseUnitId,
+      baseUnitName: p.baseUnit?.name ?? null,
+      baseUnitCode: p.baseUnit?.code ?? null,
+      baseUnitAbbreviation: p.baseUnit?.abbreviation ?? null,
+    }));
+
+    return {
+      data: mapped,
+      meta: {
+        total,
+        page,
+        limit,
+        totalPages: Math.ceil(total / limit),
       },
-      orderBy: { name: 'asc' },
-    });
+    };
   }
 
   async findOne(organizationId: string, id: string) {
