@@ -12,6 +12,7 @@ datasource db {
 enum ProductType {
   FINISHED_GOOD
   RAW_MATERIAL
+  COMPOUND_GOOD
 }
 
 enum PurchaseOrderStatus {
@@ -146,7 +147,7 @@ model Product {
   productType     ProductType       @default(FINISHED_GOOD)
   dosageForm      String?
   strength        String?
-  casNumber       String?
+  casNumber       String?           // meterial number of the drugs / items
   grade           String?
   minStock        Int               @default(0)
   maxStock        Int?
@@ -156,10 +157,10 @@ model Product {
   manufacturerId  String
   baseUnit        UnitOfMeasure     @relation("ProductBaseUnit", fields: [baseUnitId], references: [id])
   baseUnitId      String
-  stockingUnit    UnitOfMeasure     @relation("ProductStockingUnit", fields: [stockingUnitId], references: [id])
-  stockingUnitId  String
-  sellingUnit     UnitOfMeasure     @relation("ProductSellingUnit", fields: [sellingUnitId], references: [id])
-  sellingUnitId   String
+  stockingUnit    UnitOfMeasure?     @relation("ProductStockingUnit", fields: [stockingUnitId], references: [id])
+  stockingUnitId  String?
+  sellingUnit     UnitOfMeasure?     @relation("ProductSellingUnit", fields: [sellingUnitId], references: [id])
+  sellingUnitId   String?
   purchaseUnit    UnitOfMeasure?    @relation("ProductPurchaseUnit", fields: [purchaseUnitId], references: [id])
   purchaseUnitId  String?
   isActive        Boolean           @default(true)

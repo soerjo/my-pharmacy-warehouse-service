@@ -12,7 +12,11 @@ import {
 } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
 import { UnitOfMeasuresService } from './unit-of-measures.service.js';
-import { CreateUnitOfMeasureDto, UpdateUnitOfMeasureDto } from './dto/index.js';
+import {
+  CreateUnitOfMeasureDto,
+  UpdateUnitOfMeasureDto,
+  UnitOfMeasureQueryDto,
+} from './dto/index.js';
 import { OrganizationId } from '../../common/decorators/organization-id.decorator.js';
 
 @ApiTags('Unit of Measures')
@@ -34,12 +38,9 @@ export class UnitOfMeasuresController {
   @ApiOperation({ summary: 'List all units of measure' })
   findAll(
     @OrganizationId() organizationId: string,
-    @Query('isActive') isActive?: string,
+    @Query() query: UnitOfMeasureQueryDto,
   ) {
-    return this.service.findAll(
-      organizationId,
-      isActive === 'true' ? true : isActive === 'false' ? false : undefined,
-    );
+    return this.service.findAll(organizationId, query);
   }
 
   @Get(':id')

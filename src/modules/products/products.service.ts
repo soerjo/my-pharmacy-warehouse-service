@@ -19,8 +19,10 @@ export class ProductsService {
   async create(organizationId: string, dto: CreateProductDto) {
     await this.validateReferences(organizationId, dto);
 
+    const code = dto.code ?? (await this.generateCode(organizationId));
+
     const existing = await this.prisma.product.findFirst({
-      where: { organizationId, code: dto.code },
+      where: { organizationId, code },
     });
 
     if (existing) {
@@ -31,22 +33,16 @@ export class ProductsService {
 
     return this.prisma.product.create({
       data: {
-        code: dto.code,
+        code,
         name: dto.name,
         description: dto.description,
         productType: dto.productType,
         dosageForm: dto.dosageForm,
         strength: dto.strength,
         casNumber: dto.casNumber,
-        grade: dto.grade,
-        minStock: dto.minStock ?? 0,
-        maxStock: dto.maxStock,
         categoryId: dto.categoryId,
         manufacturerId: dto.manufacturerId,
         baseUnitId: dto.baseUnitId,
-        stockingUnitId: dto.stockingUnitId,
-        sellingUnitId: dto.sellingUnitId,
-        purchaseUnitId: dto.purchaseUnitId,
         organizationId,
       },
       include: {
@@ -102,6 +98,7 @@ export class ProductsService {
 
     const mapped = data.map((p) => ({
       id: p.id,
+      code: p.code,
       name: p.name,
       description: p.description,
       dosageForm: p.dosageForm,
@@ -142,7 +139,7 @@ export class ProductsService {
     });
 
     if (!product || product.organizationId !== organizationId) {
-      throw new NotFoundException('Product not found');
+      throw new BadRequestException('Product not found');
     }
 
     return product;
@@ -155,11 +152,9 @@ export class ProductsService {
       dto.categoryId ||
       dto.manufacturerId ||
       dto.baseUnitId ||
-      dto.stockingUnitId ||
-      dto.sellingUnitId ||
       dto.purchaseUnitId
     ) {
-      await this.validateUpdateReferences(organizationId, id, dto);
+      await this.validateReferences(organizationId, dto);
     }
 
     return this.prisma.product.update({
@@ -178,16 +173,10 @@ export class ProductsService {
           manufacturerId: dto.manufacturerId,
         }),
         ...(dto.baseUnitId !== undefined && { baseUnitId: dto.baseUnitId }),
-        ...(dto.stockingUnitId !== undefined && {
-          stockingUnitId: dto.stockingUnitId,
-        }),
-        ...(dto.sellingUnitId !== undefined && {
-          sellingUnitId: dto.sellingUnitId,
-        }),
+
         ...(dto.purchaseUnitId !== undefined && {
           purchaseUnitId: dto.purchaseUnitId,
         }),
-        ...(dto.isActive !== undefined && { isActive: dto.isActive }),
       },
       include: {
         category: true,
@@ -368,43 +357,50 @@ export class ProductsService {
     );
   }
 
+  private async generateCode(organizationId: string): Promise<string> {
+    const count = await this.prisma.product.count({
+      where: { organizationId },
+    });
+    return `PRD-${String(count + 1).padStart(6, '0')}`;
+  }
+
   private async validateReferences(
     organizationId: string,
     dto: CreateProductDto,
   ) {
-    const [category, manufacturer, baseUnit, stockingUnit, sellingUnit] =
+    const [category, manufacturer, baseUnit] =
       await Promise.all([
         this.prisma.productCategory.findFirst({
-          where: { id: dto.categoryId, organizationId },
+          where:
+          { 
+            OR: [{ organizationId }, { organizationId: null }],
+            id: dto.categoryId
+          },
         }),
         this.prisma.manufacturer.findFirst({
-          where: { id: dto.manufacturerId, organizationId },
+          where:
+          { 
+            OR: [{ organizationId }, { organizationId: null }],
+            id: dto.manufacturerId
+          },
         }),
         this.prisma.unitOfMeasure.findFirst({
-          where: { id: dto.baseUnitId, organizationId },
-        }),
-        this.prisma.unitOfMeasure.findFirst({
-          where: { id: dto.stockingUnitId, organizationId },
-        }),
-        this.prisma.unitOfMeasure.findFirst({
-          where: { id: dto.sellingUnitId, organizationId },
+          where:
+          { 
+            OR: [{ organizationId }, { organizationId: null }],
+            id: dto.baseUnitId
+          },
         }),
       ]);
 
     if (!category) {
-      throw new NotFoundException('Category not found');
+      throw new BadRequestException('Category not found');
     }
     if (!manufacturer) {
-      throw new NotFoundException('Manufacturer not found');
+      throw new BadRequestException('Manufacturer not found');
     }
     if (!baseUnit) {
-      throw new NotFoundException('Base unit not found');
-    }
-    if (!stockingUnit) {
-      throw new NotFoundException('Stocking unit not found');
-    }
-    if (!sellingUnit) {
-      throw new NotFoundException('Selling unit not found');
+      throw new BadRequestException('Base unit not found');
     }
 
     if (dto.purchaseUnitId) {
@@ -412,81 +408,8 @@ export class ProductsService {
         where: { id: dto.purchaseUnitId, organizationId },
       });
       if (!purchaseUnit) {
-        throw new NotFoundException('Purchase unit not found');
+        throw new BadRequestException('Purchase unit not found');
       }
-    }
-  }
-
-  private async validateUpdateReferences(
-    organizationId: string,
-    productId: string,
-    dto: UpdateProductDto,
-  ) {
-    const checks: Promise<any>[] = [];
-
-    if (dto.categoryId) {
-      checks.push(
-        this.prisma.productCategory.findFirst({
-          where: { id: dto.categoryId, organizationId },
-        }),
-      );
-    }
-    if (dto.manufacturerId) {
-      checks.push(
-        this.prisma.manufacturer.findFirst({
-          where: { id: dto.manufacturerId, organizationId },
-        }),
-      );
-    }
-    if (dto.baseUnitId) {
-      checks.push(
-        this.prisma.unitOfMeasure.findFirst({
-          where: { id: dto.baseUnitId, organizationId },
-        }),
-      );
-    }
-    if (dto.stockingUnitId) {
-      checks.push(
-        this.prisma.unitOfMeasure.findFirst({
-          where: { id: dto.stockingUnitId, organizationId },
-        }),
-      );
-    }
-    if (dto.sellingUnitId) {
-      checks.push(
-        this.prisma.unitOfMeasure.findFirst({
-          where: { id: dto.sellingUnitId, organizationId },
-        }),
-      );
-    }
-    if (dto.purchaseUnitId) {
-      checks.push(
-        this.prisma.unitOfMeasure.findFirst({
-          where: { id: dto.purchaseUnitId, organizationId },
-        }),
-      );
-    }
-
-    const results = await Promise.all(checks);
-    let idx = 0;
-
-    if (dto.categoryId && !results[idx++]) {
-      throw new NotFoundException('Category not found');
-    }
-    if (dto.manufacturerId && !results[idx++]) {
-      throw new NotFoundException('Manufacturer not found');
-    }
-    if (dto.baseUnitId && !results[idx++]) {
-      throw new NotFoundException('Base unit not found');
-    }
-    if (dto.stockingUnitId && !results[idx++]) {
-      throw new NotFoundException('Stocking unit not found');
-    }
-    if (dto.sellingUnitId && !results[idx++]) {
-      throw new NotFoundException('Selling unit not found');
-    }
-    if (dto.purchaseUnitId && !results[idx++]) {
-      throw new NotFoundException('Purchase unit not found');
     }
   }
 }

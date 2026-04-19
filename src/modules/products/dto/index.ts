@@ -16,8 +16,8 @@ import { PaginationQueryDto } from '../../../common/dto/index.js';
 export class CreateProductDto {
   @ApiProperty({ example: 'PRD-001' })
   @IsString()
-  @IsNotEmpty()
-  code: string;
+  @IsOptional()
+  code?: string;
 
   @ApiProperty({ example: 'Paracetamol 500mg' })
   @IsString()
@@ -64,111 +64,101 @@ export class CreateProductDto {
   maxStock?: number;
 
   @ApiProperty({ example: 'uuid-of-category' })
-  @IsUUID()
+  @IsString()
   @IsNotEmpty()
   categoryId: string;
 
   @ApiProperty({ example: 'uuid-of-manufacturer' })
-  @IsUUID()
+  @IsString()
   @IsNotEmpty()
   manufacturerId: string;
 
   @ApiProperty({ example: 'uuid-of-base-unit' })
-  @IsUUID()
+  @IsString()
   @IsNotEmpty()
   baseUnitId: string;
 
-  @ApiProperty({ example: 'uuid-of-stocking-unit' })
-  @IsUUID()
-  @IsNotEmpty()
-  stockingUnitId: string;
-
-  @ApiProperty({ example: 'uuid-of-selling-unit' })
-  @IsUUID()
-  @IsNotEmpty()
-  sellingUnitId: string;
-
   @ApiPropertyOptional({ example: 'uuid-of-purchase-unit' })
-  @IsUUID()
+  @IsString()
   @IsOptional()
   purchaseUnitId?: string;
 }
 
-export class UpdateProductDto {
-  @ApiPropertyOptional({ example: 'Paracetamol 500mg' })
-  @IsString()
-  @IsOptional()
-  name?: string;
+export class UpdateProductDto extends CreateProductDto {
+//   @ApiPropertyOptional({ example: 'Paracetamol 500mg' })
+//   @IsString()
+//   @IsOptional()
+//   name?: string;
 
-  @ApiPropertyOptional({ example: 'Analgesik dan Antipiretik' })
-  @IsString()
-  @IsOptional()
-  description?: string;
+//   @ApiPropertyOptional({ example: 'Analgesik dan Antipiretik' })
+//   @IsString()
+//   @IsOptional()
+//   description?: string;
 
-  @ApiPropertyOptional({ example: 'Tablet' })
-  @IsString()
-  @IsOptional()
-  dosageForm?: string;
+//   @ApiPropertyOptional({ example: 'Tablet' })
+//   @IsString()
+//   @IsOptional()
+//   dosageForm?: string;
 
-  @ApiPropertyOptional({ example: '500mg' })
-  @IsString()
-  @IsOptional()
-  strength?: string;
+//   @ApiPropertyOptional({ example: '500mg' })
+//   @IsString()
+//   @IsOptional()
+//   strength?: string;
 
-  @ApiPropertyOptional({ example: '103-90-2' })
-  @IsString()
-  @IsOptional()
-  casNumber?: string;
+//   @ApiPropertyOptional({ example: '103-90-2' })
+//   @IsString()
+//   @IsOptional()
+//   casNumber?: string;
 
-  @ApiPropertyOptional({ example: 'Pharmaceutical Grade' })
-  @IsString()
-  @IsOptional()
-  grade?: string;
+//   @ApiPropertyOptional({ example: 'Pharmaceutical Grade' })
+//   @IsString()
+//   @IsOptional()
+//   grade?: string;
 
-  @ApiPropertyOptional({ example: 100 })
-  @IsInt()
-  @IsOptional()
-  minStock?: number;
+//   @ApiPropertyOptional({ example: 100 })
+//   @IsInt()
+//   @IsOptional()
+//   minStock?: number;
 
-  @ApiPropertyOptional({ example: 1000 })
-  @IsInt()
-  @IsOptional()
-  maxStock?: number;
+//   @ApiPropertyOptional({ example: 1000 })
+//   @IsInt()
+//   @IsOptional()
+//   maxStock?: number;
 
-  @ApiPropertyOptional({ example: 'uuid-of-category' })
-  @IsUUID()
-  @IsOptional()
-  categoryId?: string;
+//   @ApiPropertyOptional({ example: 'uuid-of-category' })
+//   @IsUUID()
+//   @IsOptional()
+//   categoryId?: string;
 
-  @ApiPropertyOptional({ example: 'uuid-of-manufacturer' })
-  @IsUUID()
-  @IsOptional()
-  manufacturerId?: string;
+//   @ApiPropertyOptional({ example: 'uuid-of-manufacturer' })
+//   @IsUUID()
+//   @IsOptional()
+//   manufacturerId?: string;
 
-  @ApiPropertyOptional({ example: 'uuid-of-base-unit' })
-  @IsUUID()
-  @IsOptional()
-  baseUnitId?: string;
+//   @ApiPropertyOptional({ example: 'uuid-of-base-unit' })
+//   @IsUUID()
+//   @IsOptional()
+//   baseUnitId?: string;
 
-  @ApiPropertyOptional({ example: 'uuid-of-stocking-unit' })
-  @IsUUID()
-  @IsOptional()
-  stockingUnitId?: string;
+//   @ApiPropertyOptional({ example: 'uuid-of-stocking-unit' })
+//   @IsUUID()
+//   @IsOptional()
+//   stockingUnitId?: string;
 
-  @ApiPropertyOptional({ example: 'uuid-of-selling-unit' })
-  @IsUUID()
-  @IsOptional()
-  sellingUnitId?: string;
+//   @ApiPropertyOptional({ example: 'uuid-of-selling-unit' })
+//   @IsUUID()
+//   @IsOptional()
+//   sellingUnitId?: string;
 
-  @ApiPropertyOptional({ example: 'uuid-of-purchase-unit' })
-  @IsUUID()
-  @IsOptional()
-  purchaseUnitId?: string;
+//   @ApiPropertyOptional({ example: 'uuid-of-purchase-unit' })
+//   @IsUUID()
+//   @IsOptional()
+//   purchaseUnitId?: string;
 
-  @ApiPropertyOptional()
-  @IsBoolean()
-  @IsOptional()
-  isActive?: boolean;
+//   @ApiPropertyOptional()
+//   @IsBoolean()
+//   @IsOptional()
+//   isActive?: boolean;
 }
 
 export class ProductQueryDto extends PaginationQueryDto {
@@ -197,7 +187,10 @@ export class ProductQueryDto extends PaginationQueryDto {
   @IsOptional()
   categoryId?: string;
 
-  @ApiPropertyOptional({ type: [String], description: 'Comma-separated list of product IDs' })
+  @ApiPropertyOptional({
+    type: [String],
+    description: 'Comma-separated list of product IDs',
+  })
   @Transform(({ value }) =>
     value ? value.split(',').map((id: string) => id.trim()) : undefined,
   )

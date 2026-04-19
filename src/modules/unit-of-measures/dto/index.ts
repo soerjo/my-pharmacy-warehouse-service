@@ -1,6 +1,14 @@
 import { IsString, IsOptional, IsBoolean, IsNotEmpty } from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { Transform } from 'class-transformer';
+import { PaginationQueryDto } from '../../../common/dto/index.js';
+
+export class UnitOfMeasureQueryDto extends PaginationQueryDto {
+  @ApiPropertyOptional()
+  @IsString()
+  @IsOptional()
+  search?: string;
+}
 
 export class CreateUnitOfMeasureDto {
   @ApiProperty()

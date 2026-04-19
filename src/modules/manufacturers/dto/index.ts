@@ -6,6 +6,14 @@ import {
   IsString,
   IsBoolean,
 } from 'class-validator';
+import { PaginationQueryDto } from '../../../common/dto/index.js';
+
+export class ManufacturerQueryDto extends PaginationQueryDto {
+  @ApiPropertyOptional()
+  @IsString()
+  @IsOptional()
+  search?: string;
+}
 
 export class CreateManufacturerDto {
   @ApiProperty({ example: 'MFR-001' })

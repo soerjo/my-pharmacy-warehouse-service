@@ -3,10 +3,12 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
+import { Prisma } from '@prisma/client';
 import { PrismaService } from '../../prisma/prisma.service.js';
 import {
   CreateProductCategoryDto,
   UpdateProductCategoryDto,
+  ProductCategoryQueryDto,
 } from './dto/index.js';
 
 @Injectable()
@@ -36,19 +38,64 @@ export class ProductCategoriesService {
     });
   }
 
-  async findAll(organizationId: string, parentId?: string, isActive?: boolean) {
-    return this.prisma.productCategory.findMany({
-      where: {
-        organizationId,
-        parentId: parentId ?? null,
-        ...(isActive !== undefined && { products: { some: {} } }),
+  async findAll(organizationId: string, query: ProductCategoryQueryDto) {
+    const { page = 1, limit = 20, search } = query;
+
+    const where: Prisma.ProductCategoryWhereInput = {
+      AND: [
+        { OR: [{ organizationId }, { organizationId: null }] },
+        ...(search
+          ? [
+              {
+                OR: [
+                  {
+                    name: {
+                      contains: search,
+                      mode: Prisma.QueryMode.insensitive,
+                    },
+                  },
+                  {
+                    description: {
+                      contains: search,
+                      mode: Prisma.QueryMode.insensitive,
+                    },
+                  },
+                ],
+              },
+            ]
+          : []),
+      ],
+    };
+
+    const [data, total] = await Promise.all([
+      this.prisma.productCategory.findMany({
+        where,
+        include: {
+          parent: true,
+          children: true,
+        },
+        orderBy: { name: 'asc' },
+        skip: (page - 1) * limit,
+        take: limit,
+      }),
+      this.prisma.productCategory.count({ where }),
+    ]);
+
+    const mapped = data.map((category) => ({
+      id: category.id,
+      name: category.name,
+      description: category.description,
+    }));
+
+    return {
+      data: mapped,
+      meta: {
+        total,
+        page,
+        limit,
+        totalPages: Math.ceil(total / limit),
       },
-      include: {
-        parent: true,
-        children: true,
-      },
-      orderBy: { name: 'asc' },
-    });
+    };
   }
 
   async findOne(id: string, organizationId: string) {

@@ -7,6 +7,14 @@ import {
   MinLength,
 } from 'class-validator';
 import { Transform } from 'class-transformer';
+import { PaginationQueryDto } from '../../../common/dto/index.js';
+
+export class ProductCategoryQueryDto extends PaginationQueryDto {
+  @ApiPropertyOptional()
+  @IsString()
+  @IsOptional()
+  search?: string;
+}
 
 export class CreateProductCategoryDto {
   @ApiProperty({ example: 'Analgesics' })

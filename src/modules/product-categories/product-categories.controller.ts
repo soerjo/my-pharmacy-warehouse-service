@@ -15,6 +15,7 @@ import { ProductCategoriesService } from './product-categories.service.js';
 import {
   CreateProductCategoryDto,
   UpdateProductCategoryDto,
+  ProductCategoryQueryDto,
 } from './dto/index.js';
 import { OrganizationId } from '../../common/decorators/organization-id.decorator.js';
 
@@ -39,16 +40,9 @@ export class ProductCategoriesController {
   @ApiOperation({ summary: 'List product categories' })
   findAll(
     @OrganizationId() organizationId: string,
-    @Query('parentId') parentId?: string,
-    @Query('isActive') isActive?: string,
+    @Query() query: ProductCategoryQueryDto,
   ) {
-    const parsedIsActive =
-      isActive !== undefined ? isActive === 'true' : undefined;
-    return this.productCategoriesService.findAll(
-      organizationId,
-      parentId,
-      parsedIsActive,
-    );
+    return this.productCategoriesService.findAll(organizationId, query);
   }
 
   @Get(':id')

@@ -4,7 +4,12 @@ import {
   NotFoundException,
   ConflictException,
 } from '@nestjs/common';
-import { CreateUnitOfMeasureDto, UpdateUnitOfMeasureDto } from './dto/index.js';
+import { Prisma } from '@prisma/client';
+import {
+  CreateUnitOfMeasureDto,
+  UpdateUnitOfMeasureDto,
+  UnitOfMeasureQueryDto,
+} from './dto/index.js';
 
 @Injectable()
 export class UnitOfMeasuresService {
@@ -34,12 +39,69 @@ export class UnitOfMeasuresService {
     });
   }
 
-  async findAll(organizationId: string, isActive?: boolean) {
-    return this.prisma.unitOfMeasure.findMany({
-      where: { organizationId, ...(isActive !== undefined && { isActive }) },
-      include: { baseUnit: true, derivedUnits: true },
-      orderBy: { name: 'asc' },
-    });
+  async findAll(organizationId: string, query: UnitOfMeasureQueryDto) {
+    const { page = 1, limit = 20, search } = query;
+
+    const where: Prisma.UnitOfMeasureWhereInput = {
+      AND: [
+        { OR: [{ organizationId }, { organizationId: null }] },
+        { isActive: true },
+        ...(search
+          ? [
+              {
+                OR: [
+                  {
+                    name: {
+                      contains: search,
+                      mode: Prisma.QueryMode.insensitive,
+                    },
+                  },
+                  {
+                    code: {
+                      contains: search,
+                      mode: Prisma.QueryMode.insensitive,
+                    },
+                  },
+                  {
+                    abbreviation: {
+                      contains: search,
+                      mode: Prisma.QueryMode.insensitive,
+                    },
+                  },
+                ],
+              },
+            ]
+          : []),
+      ],
+    };
+
+    const [data, total] = await Promise.all([
+      this.prisma.unitOfMeasure.findMany({
+        where,
+        include: { baseUnit: true, derivedUnits: true },
+        orderBy: { name: 'asc' },
+        skip: (page - 1) * limit,
+        take: limit,
+      }),
+      this.prisma.unitOfMeasure.count({ where }),
+    ]);
+
+    const mapped = data.map((u) => ({
+      id: u.id,
+      code: u.code,
+      name: u.name,
+      abbreviation: u.abbreviation,
+    }));
+
+    return {
+      data: mapped,
+      meta: {
+        total,
+        page,
+        limit,
+        totalPages: Math.ceil(total / limit),
+      },
+    };
   }
 
   async findOne(id: string, organizationId: string) {

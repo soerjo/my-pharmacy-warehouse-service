@@ -16,6 +16,7 @@ import {
   ProductQueryDto,
 } from './dto/index.js';
 import { OrganizationId } from '../../common/decorators/organization-id.decorator.js';
+import { $Enums, Prisma } from '@prisma/client';
 
 @ApiBearerAuth()
 @ApiTags('Products')
@@ -39,6 +40,15 @@ export class ProductsController {
     @Query() query: ProductQueryDto,
   ) {
     return this.productsService.findAll(organizationId, query);
+  }
+
+  @Get('/type')
+  @ApiOperation({ summary: 'List products by type' })
+  getType() {
+    return Object.values($Enums.ProductType).map((type) => ({
+      id: type,
+      value: type,
+    }));
   }
 
   @Get('stock')
@@ -75,9 +85,9 @@ export class ProductsController {
     return this.productsService.update(organizationId, id, dto);
   }
 
-  @Delete(':id')
-  @ApiOperation({ summary: 'Soft delete a product' })
-  remove(@Param('id') id: string, @OrganizationId() organizationId: string) {
-    return this.productsService.remove(organizationId, id);
-  }
+  // @Delete(':id')
+  // @ApiOperation({ summary: 'Soft delete a product' })
+  // remove(@Param('id') id: string, @OrganizationId() organizationId: string) {
+  //   return this.productsService.remove(organizationId, id);
+  // }
 }

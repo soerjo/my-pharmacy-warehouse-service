@@ -4,8 +4,13 @@ import {
   NotFoundException,
   BadRequestException,
 } from '@nestjs/common';
+import { Prisma } from '@prisma/client';
 import { PrismaService } from '../../prisma/prisma.service.js';
-import { CreateManufacturerDto, UpdateManufacturerDto } from './dto/index.js';
+import {
+  CreateManufacturerDto,
+  UpdateManufacturerDto,
+  ManufacturerQueryDto,
+} from './dto/index.js';
 
 @Injectable()
 export class ManufacturersService {
@@ -26,14 +31,62 @@ export class ManufacturersService {
     });
   }
 
-  async findAll(organizationId: string, isActive?: boolean) {
-    return this.prisma.manufacturer.findMany({
-      where: {
-        organizationId,
-        ...(isActive !== undefined && { isActive }),
+  async findAll(organizationId: string, query: ManufacturerQueryDto) {
+    const { page = 1, limit = 20, search } = query;
+
+    const where: Prisma.ManufacturerWhereInput = {
+      AND: [
+        { OR: [{ organizationId }, { organizationId: null }] },
+        { isActive: true },
+        ...(search
+          ? [
+              {
+                OR: [
+                  {
+                    name: {
+                      contains: search,
+                      mode: Prisma.QueryMode.insensitive,
+                    },
+                  },
+                  {
+                    code: {
+                      contains: search,
+                      mode: Prisma.QueryMode.insensitive,
+                    },
+                  },
+                ],
+              },
+            ]
+          : []),
+      ],
+    };
+
+    const [data, total] = await Promise.all([
+      this.prisma.manufacturer.findMany({
+        where,
+        orderBy: { createdAt: 'desc' },
+        skip: (page - 1) * limit,
+        take: limit,
+      }),
+      this.prisma.manufacturer.count({ where }),
+    ]);
+
+    const mapped = data.map((m) => ({
+      id: m.id,
+      code: m.code,
+      name: m.name,
+      address: m.address,
+    }));
+
+    return {
+      data: mapped,
+      meta: {
+        total,
+        page,
+        limit,
+        totalPages: Math.ceil(total / limit),
       },
-      orderBy: { createdAt: 'desc' },
-    });
+    };
   }
 
   async findOne(organizationId: string, id: string) {

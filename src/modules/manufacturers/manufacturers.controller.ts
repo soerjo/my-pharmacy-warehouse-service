@@ -10,7 +10,11 @@ import {
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { ManufacturersService } from './manufacturers.service.js';
-import { CreateManufacturerDto, UpdateManufacturerDto } from './dto/index.js';
+import {
+  CreateManufacturerDto,
+  UpdateManufacturerDto,
+  ManufacturerQueryDto,
+} from './dto/index.js';
 import { OrganizationId } from '../../common/decorators/organization-id.decorator.js';
 
 @ApiBearerAuth()
@@ -32,12 +36,9 @@ export class ManufacturersController {
   @ApiOperation({ summary: 'List all manufacturers' })
   findAll(
     @OrganizationId() organizationId: string,
-    @Query('isActive') isActive?: string,
+    @Query() query: ManufacturerQueryDto,
   ) {
-    return this.manufacturersService.findAll(
-      organizationId,
-      isActive === 'true' ? true : isActive === 'false' ? false : undefined,
-    );
+    return this.manufacturersService.findAll(organizationId, query);
   }
 
   @Get(':id')
