@@ -100,6 +100,7 @@ export class ProductsService {
       id: p.id,
       code: p.code,
       name: p.name,
+      organizationId: p.organizationId,
       description: p.description,
       dosageForm: p.dosageForm,
       strength: p.strength,
