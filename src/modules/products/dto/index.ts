@@ -108,9 +108,14 @@ export class ProductQueryDto extends PaginationQueryDto {
   search?: string;
 
   @ApiPropertyOptional()
-  @IsUUID()
+  @IsString()
   @IsOptional()
   categoryId?: string;
+
+  @ApiPropertyOptional()
+  @IsString()
+  @IsOptional()
+  manufacturerId?: string;
 
   @ApiPropertyOptional({
     type: [String],
@@ -119,7 +124,8 @@ export class ProductQueryDto extends PaginationQueryDto {
   @Transform(({ value }) =>
     value ? value.split(',').map((id: string) => id.trim()) : undefined,
   )
-  @IsArray()
+  @IsArray()  @IsString()
+
   @IsString({ each: true })
   @IsOptional()
   ids?: string[];

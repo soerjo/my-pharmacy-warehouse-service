@@ -65,6 +65,7 @@ export class ProductsService {
       search,
       categoryId,
       ids,
+      manufacturerId,
     } = query;
 
     const where: Prisma.ProductWhereInput = {
@@ -72,6 +73,7 @@ export class ProductsService {
       ...(isActive !== undefined && { isActive }),
       ...(productType && { productType }),
       ...(categoryId && { categoryId }),
+      ...(manufacturerId && { manufacturerId }),
       ...(ids && ids.length > 0 && { id: { in: ids } }),
       ...(search && {
         OR: [
