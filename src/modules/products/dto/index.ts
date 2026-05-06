@@ -84,8 +84,7 @@ export class CreateProductDto {
   purchaseUnitId?: string;
 }
 
-export class UpdateProductDto extends CreateProductDto {
-}
+export class UpdateProductDto extends CreateProductDto {}
 
 export class ProductQueryDto extends PaginationQueryDto {
   @ApiPropertyOptional({ type: Boolean })

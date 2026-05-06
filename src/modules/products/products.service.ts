@@ -369,30 +369,26 @@ export class ProductsService {
     organizationId: string,
     dto: CreateProductDto,
   ) {
-    const [category, manufacturer, baseUnit] =
-      await Promise.all([
-        this.prisma.productCategory.findFirst({
-          where:
-          { 
-            OR: [{ organizationId }, { organizationId: null }],
-            id: dto.categoryId
-          },
-        }),
-        this.prisma.manufacturer.findFirst({
-          where:
-          { 
-            OR: [{ organizationId }, { organizationId: null }],
-            id: dto.manufacturerId
-          },
-        }),
-        this.prisma.unitOfMeasure.findFirst({
-          where:
-          { 
-            OR: [{ organizationId }, { organizationId: null }],
-            id: dto.baseUnitId
-          },
-        }),
-      ]);
+    const [category, manufacturer, baseUnit] = await Promise.all([
+      this.prisma.productCategory.findFirst({
+        where: {
+          OR: [{ organizationId }, { organizationId: null }],
+          id: dto.categoryId,
+        },
+      }),
+      this.prisma.manufacturer.findFirst({
+        where: {
+          OR: [{ organizationId }, { organizationId: null }],
+          id: dto.manufacturerId,
+        },
+      }),
+      this.prisma.unitOfMeasure.findFirst({
+        where: {
+          OR: [{ organizationId }, { organizationId: null }],
+          id: dto.baseUnitId,
+        },
+      }),
+    ]);
 
     if (!category) {
       throw new BadRequestException('Category not found');

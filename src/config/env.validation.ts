@@ -37,6 +37,14 @@ class EnvironmentVariables {
   @IsString()
   @IsOptional()
   FRONTEND_URL: string = 'http://localhost:5173';
+
+  @IsString()
+  @IsOptional()
+  THROTTLE_TTL: string = '60000';
+
+  @IsString()
+  @IsOptional()
+  THROTTLE_LIMIT: string = '100';
 }
 
 export function validate(config: Record<string, unknown>) {
