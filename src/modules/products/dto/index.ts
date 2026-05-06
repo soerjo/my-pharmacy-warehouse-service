@@ -1,4 +1,4 @@
-import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { ApiProperty, ApiPropertyOptional, ApiQuery } from '@nestjs/swagger';
 import {
   IsEnum,
   IsInt,
@@ -118,14 +118,20 @@ export class ProductQueryDto extends PaginationQueryDto {
   manufacturerId?: string;
 
   @ApiPropertyOptional({
-    type: [String],
+    name: 'ids',
+    required: false,
+    type: String,
     description: 'Comma-separated list of product IDs',
   })
   @Transform(({ value }) =>
-    value ? value.split(',').map((id: string) => id.trim()) : undefined,
+    value
+      ? value
+          .split(',')
+          .map((id: string) => id.trim())
+          .filter(Boolean)
+      : undefined,
   )
-  @IsArray()  @IsString()
-
+  @IsArray()
   @IsString({ each: true })
   @IsOptional()
   ids?: string[];
