@@ -98,11 +98,11 @@ export class ProductQueryDto extends PaginationQueryDto {
   @IsOptional()
   isActive?: boolean;
 
-  @ApiPropertyOptional({ type: Boolean })
+  @ApiPropertyOptional({ type: Boolean, default: true })
   @Transform(({ value }) => {
     if (value === 'true') return true;
     if (value === 'false') return false;
-    return undefined;
+    return true;
   })
   @IsBoolean()
   @IsOptional()
