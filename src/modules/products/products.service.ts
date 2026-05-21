@@ -66,10 +66,11 @@ export class ProductsService {
       categoryId,
       ids,
       manufacturerId,
+      isInCludeNullOrg,
     } = query;
 
     const where: Prisma.ProductWhereInput = {
-      OR: [{ organizationId }, { organizationId: null }],
+      ...(isInCludeNullOrg ? { OR: [{ organizationId }, { organizationId: null }] } : { organizationId }),
       ...(isActive !== undefined && { isActive }),
       ...(productType && { productType }),
       ...(categoryId && { categoryId }),

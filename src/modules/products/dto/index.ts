@@ -22,7 +22,7 @@ export class CreateProductDto {
   @ApiProperty({ example: 'Paracetamol 500mg' })
   @IsString()
   @IsNotEmpty()
-  name: string;
+  name!: string;
 
   @ApiPropertyOptional({ example: 'Analgesik dan Antipiretik' })
   @IsString()
@@ -31,7 +31,8 @@ export class CreateProductDto {
 
   @ApiProperty({ enum: ProductType, default: ProductType.FINISHED_GOOD })
   @IsEnum(ProductType)
-  productType: ProductType;
+  @IsOptional()
+  productType?: ProductType;
 
   @ApiPropertyOptional({ example: 'Tablet' })
   @IsString()
@@ -66,17 +67,17 @@ export class CreateProductDto {
   @ApiProperty({ example: 'uuid-of-category' })
   @IsString()
   @IsNotEmpty()
-  categoryId: string;
+  categoryId!: string;
 
   @ApiProperty({ example: 'uuid-of-manufacturer' })
   @IsString()
   @IsNotEmpty()
-  manufacturerId: string;
+  manufacturerId!: string;
 
   @ApiProperty({ example: 'uuid-of-base-unit' })
   @IsString()
   @IsNotEmpty()
-  baseUnitId: string;
+  baseUnitId!: string;
 
   @ApiPropertyOptional({ example: 'uuid-of-purchase-unit' })
   @IsString()
@@ -96,6 +97,16 @@ export class ProductQueryDto extends PaginationQueryDto {
   @IsBoolean()
   @IsOptional()
   isActive?: boolean;
+
+  @ApiPropertyOptional({ type: Boolean })
+  @Transform(({ value }) => {
+    if (value === 'true') return true;
+    if (value === 'false') return false;
+    return undefined;
+  })
+  @IsBoolean()
+  @IsOptional()
+  isInCludeNullOrg?: boolean;
 
   @ApiPropertyOptional({ enum: ProductType })
   @IsEnum(ProductType)
