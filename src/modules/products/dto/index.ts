@@ -106,7 +106,7 @@ export class ProductQueryDto extends PaginationQueryDto {
   })
   @IsBoolean()
   @IsOptional()
-  isInCludeNullOrg: boolean = true;
+  isInCludeNullOrg?: boolean = true;
 
   @ApiPropertyOptional({ enum: ProductType })
   @IsEnum(ProductType)
